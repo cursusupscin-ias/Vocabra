@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f1115">
+<title>VOCABRA — Your World of Words</title>
+<style>
+:root{
+  --bg:#f8f9fc;--paper:#ffffff;--ink:#12141a;--muted:#646a77;--line:#e4e7ec;
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-bg:#eff6ff;--danger:#dc2626;
+  --shadow:0 10px 30px -5px rgba(18,20,26,0.05),0 4px 6px -2px rgba(18,20,26,0.02);
+  --radius:16px;--transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-theme="dark"]{
+  --bg:#090a0f;--paper:#12141c;--ink:#f3f4f6;--muted:#9ca3af;--line:#1f2430;
+  --accent:#3b82f6;--accent-hover:#60a5fa;--accent-bg:#1e293b;--danger:#f87171;
+  --shadow:0 10px 30px -5px rgba(0,0,0,0.3);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit}
+
+.app{min-height:100vh;display:flex;flex-direction:column}
+.header{position:sticky;top:0;z-index:50;background:var(--paper);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.headerin{max-width:1300px;margin:auto;padding:16px 24px}
+.brandline{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{font-family:Georgia,serif;font-size:24px;font-weight:700;letter-spacing:-0.5px;display:flex;align-items:center;gap:12px}
+.brand-logo{width:38px;height:38px;object-fit:contain;border-radius:8px}
+.brand small{display:block;font:11px/1.2 Inter,sans-serif;color:var(--muted);font-weight:400;margin-top:2px}
+
+.nav-tabs{display:flex;gap:6px;margin-top:14px}
+.tab{border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;transition:var(--transition)}
+.tab.active,.tab:hover{background:var(--accent-bg);color:var(--accent)}
+
+.container{max-width:1300px;margin:auto;padding:32px 24px 80px;width:100%;flex:1}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.stat-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.stat-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.stat-value{font-family:Georgia,serif;font-size:30px;font-weight:700;margin-top:7px}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.stats-grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chart-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.chart-title{font-family:Georgia,serif;font-size:18px;font-weight:700;margin:0 0 16px}
+.bar-chart{height:190px;display:flex;align-items:flex-end;gap:7px;border-bottom:1px solid var(--line);padding:0 4px}
+.bar-wrap{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.bar{width:100%;max-width:28px;border-radius:7px 7px 0 0;background:var(--accent);min-height:2px;transition:height .25s ease}
+.bar-label{font-size:9px;color:var(--muted);margin-top:7px;white-space:nowrap}
+.bar-count{font-size:9px;color:var(--muted);margin-bottom:4px;min-height:11px}
+.stat-list{display:grid;gap:10px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.stat-row:last-child{border-bottom:0}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats-grid2{grid-template-columns:1fr}}
+@media(max-width:520px){.stat-grid{grid-template-columns:1fr 1fr}.stat-card{padding:14px}.stat-value{font-size:25px}.bar-chart{gap:4px}}
+
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:24px}
+.hero h1{font-family:Georgia,serif;font-size:32px;margin:0 0 4px;letter-spacing:-0.5px}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:var(--transition)}
+.btn:hover{background:var(--bg);border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.danger{color:var(--danger)}
+.btn.danger:hover{background:var(--accent-bg)}
+
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.toolbar{padding:16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.search-box{flex:1;min-width:200px;position:relative}
+.input{border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:10px 14px;color:var(--ink);outline:none;width:100%;font-size:13px;transition:var(--transition)}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+select.input{cursor:pointer}
+.count{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap}
+
+/* Table View */
+.tablewrap{overflow:auto}
+.table{width:100%;border-collapse:collapse;text-align:left;min-width:900px}
+.table th{background:var(--bg);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.table td{padding:16px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+.table tr:last-child td{border-bottom:0}
+.table tr:hover td{background:var(--bg)}
+.word-title{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.meaning-text{line-height:1.5;color:var(--ink)}
+.example-text{color:var(--muted);line-height:1.5;font-style:italic;margin-top:4px}
+.tags-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag{font-size:11px;background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:6px;color:var(--muted)}
+
+/* Grid View Alternative */
+.grid-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:16px}
+.vocab-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;position:relative;transition:var(--transition);box-shadow:var(--shadow)}
+.vocab-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start}
+.card-date{font-size:11px;color:var(--muted);font-weight:500}
+.card-actions{display:flex;gap:4px}
+
+.rowtools{display:flex;gap:6px}
+.mini{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition)}
+.mini:hover{background:var(--bg);border-color:var(--muted)}
+
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:Georgia,serif;font-size:20px;margin-bottom:8px}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(10,12,16,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;opacity:0;pointer-events:none;transition:all 0.25s ease}
+.modal:not(.hidden){opacity:1;pointer-events:auto}
+.modalbox{background:var(--paper);width:min(640px,100%);max-height:90vh;overflow-y:auto;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);transform:scale(0.95);transition:transform 0.25s ease}
+.modal:not(.hidden) .modalbox{transform:scale(1)}
+.modalhead{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modalhead h2{font-family:Georgia,serif;margin:0;font-size:20px}
+.form{padding:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+.field textarea{width:100%;min-height:90px;resize:vertical}
+.formfoot{padding-top:12px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:20px}
+
+.hidden{display:none!important}
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:1000;pointer-events:none}
+.toast{background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;box-shadow:var(--shadow);animation:fadeInOut 2s ease forwards}
+
+@keyframes fadeInOut{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1;transform:translate(-50%,0)}85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
+
+@media(max-width:768px){
+  .hero{flex-direction:column;align-items:flex-start}
+  .headerin,.container{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+   <div class="headerin">
+    <div class="brandline">
+     <div class="brand">
+       <img class="brand-logo" src="data:image/png;base64,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" alt="Vocabra Logo" />
+       <div>VOCABRA <small>Your World of Words</small></div>
+     </div>
+     <div class="actions">
+       <div id="authArea" class="actions">
+         <span id="authStatus" style="font-size:12px;color:var(--muted)">Local mode</span>
+         <button class="btn" id="connectBtn" type="button">☁ Connect</button>
+         <button class="btn" id="loginBtn" type="button" style="display:none">Continue with Google</button>
+         <button class="btn" id="logoutBtn" type="button" style="display:none">Sign out</button>
+       </div>
+       <button class="btn" id="themeBtn" type="button" title="Toggle theme">☾ Dark</button>
+       <button class="btn primary" id="addTop" type="button">＋ Add Word</button>
+     </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="tab active" data-tab="diary">Diary Collection</button>
+      <button class="tab" data-tab="review">Quick Review</button>
+      <button class="tab" data-tab="stats">Statistics</button>
+      <button class="tab" data-tab="backup">Data & Export</button>
+    </nav>
+   </div>
+  </header>
+
+  <main class="container">
+    <!-- Diary Section -->
+    <section id="diaryTab">
+     <div class="hero">
+       <div><h1>Vocabulary Diary</h1><p>Your curated vault of words, definitions, and contextual examples.</p></div>
+       <div class="actions">
+         <button class="btn" id="viewToggleBtn" title="Switch layout">Switch to Grid View</button>
+       </div>
+     </div>
+     <div class="paper">
+      <div class="toolbar">
+       <div class="search-box">
+         <input class="input" id="search" placeholder="Search by word, meaning, or example...">
+       </div>
+       <select class="input" id="sort" style="width:160px">
+         <option value="new">Newest first</option>
+         <option value="old">Oldest first</option>
+         <option value="az">A – Z</option>
+         <option value="za">Z – A</option>
+       </select>
+       <span class="count" id="count">0 words</span>
+      </div>
+      
+      <!-- Table View Container -->
+      <div id="tableViewContainer" class="tablewrap">
+       <table class="table">
+         <thead>
+           <tr>
+             <th style="width:110px">Date</th>
+             <th style="width:200px">Word</th>
+             <th>Meaning & Context</th>
+             <th style="width:100px">Actions</th>
+           </tr>
+         </thead>
+         <tbody id="rows"></tbody>
+       </table>
+      </div>
+
+      <!-- Grid View Container -->
+      <div id="gridViewContainer" class="grid-view hidden"></div>
+     </div>
+    </section>
+
+    <!-- Review Section -->
+    <section id="reviewTab" class="hidden">
+     <div class="hero">
+       <div><h1>Quick Review</h1><p>A continuous feed of your most recent linguistic entries.</p></div>
+     </div>
+     <div class="paper" style="padding:24px">
+       <div id="reviewList" style="display:flex;flex-direction:column;gap:16px"></div>
+     </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="statsTab" class="hidden">
+     <div class="hero">
+       <div><h1>Statistics</h1><p>A clear picture of your vocabulary collection and growth over time.</p></div>
+     </div>
+     <div class="stat-grid">
+       <div class="stat-card"><div class="stat-label">Total Words</div><div class="stat-value" id="statTotal">0</div><div class="stat-sub">All entries in your diary</div></div>
+       <div class="stat-card"><div class="stat-label">Added Today</div><div class="stat-value" id="statToday">0</div><div class="stat-sub">Words dated today</div></div>
+       <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="statMonth">0</div><div class="stat-sub">Words added this month</div></div>
+       <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value" id="statYear">0</div><div class="stat-sub">Words added this year</div></div>
+     </div>
+     <div class="stats-grid2">
+       <div class="chart-card">
+         <h3 class="chart-title">Last 14 Days</h3>
+         <div class="bar-chart" id="dailyChart"></div>
+       </div>
+       <div class="chart-card">
+         <h3 class="chart-title">Last 12 Months</h3>
+         <div class="bar-chart" id="monthlyChart"></div>
+       </div>
+     </div>
+     <div class="stats-grid2" style="margin-top:18px">
+       <div class="chart-card">
+         <h3 class="chart-title">Collection Details</h3>
+         <div class="stat-list">
+           <div class="stat-row"><span>Average words per month</span><strong id="statAvg">0</strong></div>
+           <div class="stat-row"><span>Words with examples</span><strong id="statExamples">0</strong></div>
+           <div class="stat-row"><span>Words with synonyms</span><strong id="statSynonyms">0</strong></div>
+           <div class="stat-row"><span>Words with antonyms</span><strong id="statAntonyms">0</strong></div>
+         </div>
+       </div>
+       <div class="chart-card">
+         <h3 class="chart-title">Your Vocabulary Timeline</h3>
+         <div class="stat-list">
+           <div class="stat-row"><span>First recorded word</span><strong id="statFirst">—</strong></div>
+           <div class="stat-row"><span>Latest recorded word</span><strong id="statLatest">—</strong></div>
+           <div class="stat-row"><span>Most productive month</span><strong id="statBestMonth">—</strong></div>
+           <div class="stat-row"><span>Longest collection span</span><strong id="statSpan">—</strong></div>
+         </div>
+       </div>
+     </div>
+    </section>
+
+    <!-- Backup Section -->
+    <section id="backupTab" class="hidden">
+     <div class="hero">
+       <div><h1>Backup & Portability</h1><p>Secure your local records safely on your device.</p></div>
+     </div>
+     <div class="paper" style="padding:24px">
+       <h3 style="margin-top:0;font-family:Georgia,serif">Local Storage Sync Status</h3>
+       <p style="color:var(--muted);font-size:14px;line-height:1.5">Your entries are saved instantly to your browser's local storage. You can export or import backups anytime as JSON or CSV files.</p>
+       <div class="actions" style="margin-top:20px">
+         <button class="btn primary" id="export">Export JSON Backup</button>
+         <button class="btn" id="exportCsv">Export CSV Sheet</button>
+         <label class="btn">Import JSON<input id="import" type="file" accept=".json" hidden></label>
+       </div>
+     </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal Form -->
+<div id="modal" class="modal hidden">
+ <div class="modalbox">
+  <div class="modalhead">
+    <h2 id="modalTitle">Add a word</h2>
+    <button class="mini" id="close">✕</button>
+  </div>
+  <form class="form" id="form">
+   <input type="hidden" id="id">
+   <div class="field"><label>Date Added</label><input class="input" type="date" id="date" required></div>
+   <div class="field"><label>Word / Term</label><input class="input" id="word" placeholder="e.g. Ephemeral" required autofocus></div>
+   <div class="field"><label>Meaning</label><textarea class="input" id="meaning" placeholder="Write the definition clearly..." required></textarea></div>
+   <div class="field"><label>Example Sentence</label><textarea class="input" id="example" placeholder="Use it naturally in a sentence..."></textarea></div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+     <div class="field"><label>Synonyms</label><input class="input" id="synonyms" placeholder="fleeting, temporary"></div>
+     <div class="field"><label>Antonyms</label><input class="input" id="antonyms" placeholder="permanent, enduring"></div>
+   </div>
+   <div class="field"><label>Similar / Related Words</label><input class="input" id="related" placeholder="mankind, people..."></div>
+   
+   <!-- Datamuse Word Finder Box -->
+   <div id="wordLookup" class="hidden" style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:16px;background:var(--bg)">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Smart Word Finder</div>
+    <div id="lookupStatus" style="font-size:12px;color:var(--muted)">Searching online suggestions...</div>
+    <div id="lookupResults" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px"></div>
+   </div>
+
+   <div class="formfoot">
+     <button type="button" class="btn danger" id="deleteFromForm">Delete Word</button>
+     <div class="actions">
+       <button type="button" class="btn" id="cancel">Cancel</button>
+       <button type="submit" class="btn primary">Save Entry</button>
+     </div>
+   </div>
+  </form>
+ </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  'use strict';
+  let words=[],editing=null,isGridView=false,currentUser=null;
+  const STORAGE_KEY='vocabra_offline_words',CONFIG_KEY='vocabra_supabase_config';
+  const DEFAULT_URL='https://wglmzoahawbzvlyanfbh.supabase.co';
+  const $=id=>document.getElementById(id);
+  const today=()=>new Date().toISOString().slice(0,10);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const uid=()=>crypto.randomUUID?crypto.randomUUID():'w-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  function getConfig(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')}catch{return null}}
+  function setConfig(url,key){localStorage.setItem(CONFIG_KEY,JSON.stringify({url:url.trim().replace(/\/$/,''),key:key.trim()}))}
+  function makeClient(){const c=getConfig();if(!c?.url||!c?.key||!window.supabase)return null;try{return window.supabase.createClient(c.url,c.key)}catch{return null}}
+  let sb=makeClient();
+  function loadLocal(){try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
+  function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(words))}
+  function showToast(text){const c=$('toastContainer');if(!c)return;const t=document.createElement('div');t.className='toast';t.textContent=text;c.appendChild(t);setTimeout(()=>t.remove(),2500)}
+  const dbToWord=r=>({id:r.id,date:r.date||today(),word:r.word||'',meaning:r.meaning||'',example:r.example||'',synonyms:r.synonyms||'',antonyms:r.antonyms||'',related:r.related||'',created:r.created_at||new Date().toISOString()});
+  const wordToDb=w=>({user_id:currentUser.id,word:w.word,meaning:w.meaning||'',example:w.example||'',synonyms:w.synonyms||'',antonyms:w.antonyms||'',related:w.related||'',date:w.date||today()});
+  async function loadCloud(){if(!sb||!currentUser)return false;const {data,error}=await sb.from('words').select('*').order('date',{ascending:false}).order('created_at',{ascending:false});if(error){console.error(error);showToast('Cloud load failed.');return false}words=(data||[]).map(dbToWord);saveLocal();return true}
+  function updateAuthUI(){const configured=!!sb;$('connectBtn').textContent=configured?'☁ Connected':'☁ Connect';$('loginBtn').style.display=configured&&!currentUser?'inline-flex':'none';$('logoutBtn').style.display=configured&&currentUser?'inline-flex':'none';$('authStatus').textContent=currentUser?(currentUser.email?`Signed in · ${currentUser.email}`:'Signed in'):(configured?'Cloud ready · Sign in':'Local mode')}
+  function connectPrompt(){const old=getConfig();const url=prompt('Supabase Project URL:',old?.url||DEFAULT_URL);if(url===null)return;const key=prompt('Supabase Publishable key:',old?.key||'');if(key===null)return;if(!url.trim()||!key.trim())return alert('Please enter both values.');setConfig(url,key);sb=makeClient();updateAuthUI();showToast('Supabase connected on this device.');checkSession()}
+  async function checkSession(){if(!sb)return;const {data}=await sb.auth.getSession();currentUser=data?.session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Cloud vocabulary loaded.')}}sb.auth.onAuthStateChange(async(_event,session)=>{currentUser=session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Signed in and synced.')}}})}
+  async function loginGoogle(){if(!sb)return connectPrompt();const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)alert(error.message)}
+  async function logout(){if(!sb)return;const {error}=await sb.auth.signOut();if(error)return alert(error.message);currentUser=null;loadLocal();render();updateAuthUI();showToast('Signed out. Local backup remains on this device.')}
+  async function addCloud(w){if(!sb||!currentUser)return false;const {data,error}=await sb.from('words').insert(wordToDb(w)).select().single();if(error){console.error(error);alert('Could not save to cloud: '+error.message);return false}w.id=data.id;w.created=data.created_at;return true}
+  async function updateCloud(w){if(!sb||!currentUser)return false;const {error}=await sb.from('words').update(wordToDb(w)).eq('id',w.id).eq('user_id',currentUser.id);if(error){console.error(error);alert('Could not update cloud: '+error.message);return false}return true}
+  async function deleteCloud(id){if(!sb||!currentUser)return false;const {error}=await sb.from('words').delete().eq('id',id).eq('user_id',currentUser.id);if(error){console.error(error);alert('Could not delete from cloud: '+error.message);return false}return true}
+  function load(){if(!currentUser)loadLocal();words.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created||'').localeCompare(a.created||''));render()}
+  function visible(){let q=$('search').value.toLowerCase().trim(),s=$('sort').value,a=words.filter(w=>!q||[w.word,w.meaning,w.example,w.synonyms].join(' ').toLowerCase().includes(q));a.sort((x,y)=>{if(s==='az')return(x.word||'').localeCompare(y.word||'',undefined,{sensitivity:'base'});if(s==='za')return(y.word||'').localeCompare(x.word||'',undefined,{sensitivity:'base'});if(s==='old')return(x.date||'').localeCompare(y.date||'')||(x.created||'').localeCompare(y.created||'');return(y.date||'').localeCompare(x.date||'')||(y.created||'').localeCompare(x.created||'')});return a}
+  function render(){let a=visible();$('count').textContent=a.length+(a.length===1?' word':' words');if(isGridView){$('tableViewContainer').classList.add('hidden');$('gridViewContainer').classList.remove('hidden');$('gridViewContainer').innerHTML=a.map(w=>`<div class="vocab-card"><div class="card-header"><span class="card-date">${w.date?esc(new Date(w.date+'T00:00:00').toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'})):''}</span><div class="card-actions"><button class="mini" type="button" onclick="window.editWord('${esc(w.id)}')">Edit</button><button class="mini danger" type="button" onclick="window.delWord('${esc(w.id)}')">Del</button></div></div><div><div class="word-title">${esc(w.word)}</div><div class="meaning-text">${esc(w.meaning)}</div>${w.example?`<div class="example-text">“${esc(w.example)}”</div>`:''}</div><div class="tags-container">${w.synonyms?`<span class="tag">Syn: ${esc(w.synonyms)}</span>`:''}${w.antonyms?`<span class="tag">Ant: ${esc(w.antonyms)}</span>`:''}</div></div>`).join('')||'<div class="empty"><strong>No words matched</strong>Try adjusting your filter or search criteria.</div>'}else{$('gridViewContainer').classList.add('hidden');$('tableViewContainer').classList.remove('hidden');$('rows').innerHTML=a.map(w=>`<tr><td style="color:var(--muted);font-size:12px">${w.date?esc(new Date(w.date+'T00:00:00').toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'})):''}</td><td><div class="word-title">${esc(w.word)}</div></td><td><div class="meaning-text">${esc(w.meaning)}</div>${w.example?`<div class="example-text">“${esc(w.example)}”</div>`:''}<div class="tags-container">${w.synonyms?`<span class="tag">Synonyms: ${esc(w.synonyms)}</span>`:''}${w.antonyms?`<span class="tag">Antonyms: ${esc(w.antonyms)}</span>`:''}${w.related?`<span class="tag">Related: ${esc(w.related)}</span>`:''}</div></td><td><div class="rowtools"><button class="mini" type="button" onclick="window.editWord('${esc(w.id)}')">Edit</button><button class="mini" type="button" onclick="window.delWord('${esc(w.id)}')">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="4"><div class="empty"><strong>Your diary is empty</strong>Click “Add Word” to log your first discovery.</div></td></tr>'}renderReview();renderStats()}
+  function openForm(w){editing=w||null;$('modalTitle').textContent=w?'Edit Vocabulary Entry':'Add a Word';$('id').value=w?.id||'';$('date').value=w?.date||today();$('word').value=w?.word||'';$('meaning').value=w?.meaning||'';$('example').value=w?.example||'';$('synonyms').value=w?.synonyms||'';$('antonyms').value=w?.antonyms||'';$('related').value=w?.related||'';$('deleteFromForm').style.display=w?'inline-flex':'none';$('wordLookup').classList.add('hidden');$('modal').classList.remove('hidden');setTimeout(()=>$('word').focus(),50)}
+  function closeForm(){$('modal').classList.add('hidden');editing=null}
+  $('form').onsubmit=async e=>{e.preventDefault();const wasEditing=!!editing;let w={id:$('id').value||uid(),date:$('date').value,word:$('word').value.trim(),meaning:$('meaning').value.trim(),example:$('example').value.trim(),synonyms:$('synonyms').value.trim(),antonyms:$('antonyms').value.trim(),related:$('related').value.trim(),created:editing?.created||new Date().toISOString()};if(!w.word||!w.meaning)return;if(currentUser&&sb){const ok=wasEditing?await updateCloud(w):await addCloud(w);if(!ok)return}if(wasEditing){const i=words.findIndex(x=>x.id===w.id);if(i!==-1)words[i]=w}else words.unshift(w);saveLocal();closeForm();load();showToast(wasEditing?'Word successfully updated!':'Word successfully added!')}
+  window.editWord=id=>{const w=words.find(x=>x.id===id);if(w)openForm(w)};
+  window.delWord=async id=>{const w=words.find(x=>x.id===id);if(!w||!confirm(`Are you sure you want to delete “${w.word}”?`))return;if(currentUser&&sb){const ok=await deleteCloud(id);if(!ok)return}words=words.filter(x=>x.id!==id);saveLocal();load();showToast('Word deleted.')};
+  $('deleteFromForm').onclick=async()=>{if(editing){const id=editing.id;await window.delWord(id);if(!words.some(x=>x.id===id))closeForm()}};$('addTop').onclick=()=>openForm();$('close').onclick=closeForm;$('cancel').onclick=closeForm;$('search').oninput=render;$('sort').onchange=render;
+  $('viewToggleBtn').onclick=()=>{isGridView=!isGridView;$('viewToggleBtn').textContent=isGridView?'Switch to Table View':'Switch to Grid View';render()};
+  function formatStatDate(iso){if(!iso)return '—';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'})}
+  function renderBars(elId,items){const el=$(elId);if(!el)return;const max=Math.max(1,...items.map(x=>x.count));el.innerHTML=items.map(x=>`<div class="bar-wrap"><div class="bar-count">${x.count||''}</div><div class="bar" title="${esc(x.title)}: ${x.count}" style="height:${Math.max(2,(x.count/max)*155)}px"></div><div class="bar-label">${esc(x.label)}</div></div>`).join('')}
+  function renderStats(){
+    const total=words.length, now=new Date(), todayKey=now.toISOString().slice(0,10), year=now.getFullYear(), month=now.getMonth();
+    const todayCount=words.filter(w=>w.date===todayKey).length;
+    const monthCount=words.filter(w=>{if(!w.date)return false;const d=new Date(w.date+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===month}).length;
+    const yearCount=words.filter(w=>w.date&&w.date.slice(0,4)===String(year)).length;
+    $('statTotal').textContent=total;$('statToday').textContent=todayCount;$('statMonth').textContent=monthCount;$('statYear').textContent=yearCount;
+    const daily=[];for(let i=13;i>=0;i--){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);daily.push({label:d.toLocaleDateString(undefined,{day:'2-digit'}),title:d.toLocaleDateString(undefined,{day:'2-digit',month:'short'}),count:words.filter(w=>w.date===key).length})}renderBars('dailyChart',daily);
+    const monthly=[];for(let i=11;i>=0;i--){const d=new Date(year,month-i,1);const y=d.getFullYear(),m=d.getMonth();const count=words.filter(w=>{if(!w.date)return false;const x=new Date(w.date+'T00:00:00');return x.getFullYear()===y&&x.getMonth()===m}).length;monthly.push({label:d.toLocaleDateString(undefined,{month:'short'}),title:d.toLocaleDateString(undefined,{month:'long',year:'numeric'}),count})}renderBars('monthlyChart',monthly);
+    const dated=words.filter(w=>w.date).map(w=>w.date).sort();
+    const first=dated[0],latest=dated[dated.length-1];$('statFirst').textContent=formatStatDate(first);$('statLatest').textContent=formatStatDate(latest);
+    const monthMap={};words.forEach(w=>{if(w.date){const k=w.date.slice(0,7);monthMap[k]=(monthMap[k]||0)+1}});const keys=Object.keys(monthMap);const avg=keys.length?Math.round(total/keys.length):0;$('statAvg').textContent=avg;
+    $('statExamples').textContent=words.filter(w=>w.example&&w.example.trim()).length;$('statSynonyms').textContent=words.filter(w=>w.synonyms&&w.synonyms.trim()).length;$('statAntonyms').textContent=words.filter(w=>w.antonyms&&w.antonyms.trim()).length;
+    if(keys.length){const best=keys.sort((a,b)=>monthMap[b]-monthMap[a])[0];const bd=new Date(best+'-01T00:00:00');$('statBestMonth').textContent=bd.toLocaleDateString(undefined,{month:'short',year:'numeric'})+` · ${monthMap[best]}`;}else $('statBestMonth').textContent='—';
+    if(first&&latest){const ms=new Date(latest+'T00:00:00')-new Date(first+'T00:00:00');$('statSpan').textContent=Math.max(0,Math.floor(ms/86400000)+1)+' days'}else $('statSpan').textContent='—';
+  }
+
+  function renderReview(){const a=[...words].sort((x,y)=>(y.date||'').localeCompare(x.date||'')||(y.created||'').localeCompare(x.created||'')).slice(0,15);$('reviewList').innerHTML=a.map(w=>`<div style="padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-family:Georgia,serif;font-size:16px">${esc(w.word)}</b><span style="font-size:11px;color:var(--muted)">${esc(w.date)}</span></div><p style="margin:0 0 6px;font-size:13px">${esc(w.meaning)}</p>${w.example?`<p style="margin:0;font-size:13px;color:var(--muted);font-style:italic">“${esc(w.example)}”</p>`:''}</div>`).join('')||'<div class="empty">No entries found for review yet.</div>'}
+  function download(name,data,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+  $('export').onclick=()=>download('Vocabra-Backup.json',JSON.stringify({app:'Vocabra',version:3,exportedAt:new Date().toISOString(),words},null,2),'application/json');
+  $('exportCsv').onclick=()=>{let q=x=>`"${String(x??'').replaceAll('"','""')}"`;let csv=['Date,Word,Meaning,Synonyms,Antonyms,Related,Example',...words.map(w=>[q(w.date),q(w.word),q(w.meaning),q(w.synonyms),q(w.antonyms),q(w.related),q(w.example)].join(','))].join('\n');download('Vocabra-Sheet.csv',csv,'text/csv;charset=utf-8')};
+  $('import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text()),a=Array.isArray(d)?d:d.words||[],n=0;for(let w of a){if(w.word&&w.meaning){let nw={...w,id:w.id||uid(),date:w.date||today(),created:w.created||new Date().toISOString()};if(words.some(x=>x.id===nw.id))continue;if(currentUser&&sb){const ok=await addCloud(nw);if(!ok)continue}words.push(nw);n++}}saveLocal();load();showToast(`Successfully imported ${n} words!`)}catch{alert('Invalid JSON backup file format.')}e.target.value=''};
+  async function lookupWord(term){const q=term.trim();if(!q)return;$('wordLookup').classList.remove('hidden');$('lookupStatus').textContent='Fetching synonyms...';$('lookupResults').innerHTML='';try{const res=await fetch('https://api.datamuse.com/words?rel_syn='+encodeURIComponent(q)+'&max=6');const syn=await res.json();const synonyms=[...new Set(syn.map(x=>x.word).filter(Boolean))];if(!synonyms.length){$('lookupStatus').textContent='No online suggestions found.';return}$('lookupStatus').textContent='Click any suggestion to add it as a synonym:';$('lookupResults').innerHTML=synonyms.map(x=>`<button type="button" class="mini suggestion" data-value="${esc(x)}">${esc(x)}</button>`).join(' ');document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>{let v=$('synonyms').value.split(',').map(x=>x.trim()).filter(Boolean);if(!v.includes(b.dataset.value))v.push(b.dataset.value);$('synonyms').value=v.join(', ')})}catch{$('lookupStatus').textContent='Offline mode enabled.'}}
+  $('word').addEventListener('blur',()=>{if($('word').value.trim())lookupWord($('word').value)});
+  const savedTheme=localStorage.getItem('vocabra-theme')||'light';document.documentElement.dataset.theme=savedTheme;function updateThemeButton(){$('themeBtn').textContent=document.documentElement.dataset.theme==='dark'?'☀ Light':'☾ Dark'}$('themeBtn').onclick=()=>{let dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';localStorage.setItem('vocabra-theme',dark?'dark':'light');updateThemeButton()};updateThemeButton();
+  document.querySelectorAll('.nav-tabs .tab').forEach(tab=>tab.onclick=()=>{document.querySelectorAll('.nav-tabs .tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('section[id$="Tab"]').forEach(sec=>sec.classList.add('hidden'));tab.classList.add('active');const target=$(tab.dataset.tab+'Tab');if(target){target.classList.remove('hidden');if(tab.dataset.tab==='review')renderReview();if(tab.dataset.tab==='stats')renderStats();}});$('connectBtn').onclick=connectPrompt;$('loginBtn').onclick=loginGoogle;$('logoutBtn').onclick=logout;
+  loadLocal();load();updateAuthUI();await checkSession();
+});
+</script>
+</body>
+</html>
