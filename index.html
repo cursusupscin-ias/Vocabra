@@ -316,11 +316,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   let words=[],editing=null,isGridView=false,currentUser=null;
   const STORAGE_KEY='vocabra_offline_words',CONFIG_KEY='vocabra_supabase_config';
   const DEFAULT_URL='https://wglmzoahawbzvlyanfbh.supabase.co';
+  const DEFAULT_KEY='sb_publishable_dni-HfEGnAN08k8uJX55XQ_6qXn3Eea';
   const $=id=>document.getElementById(id);
   const today=()=>new Date().toISOString().slice(0,10);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uid=()=>crypto.randomUUID?crypto.randomUUID():'w-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  function getConfig(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')}catch{return null}}
+ function getConfig(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CONFIG_KEY)||'null');
+    if(saved && saved.url && saved.key) return saved;
+  }catch(e){}
+  if(DEFAULT_URL && DEFAULT_KEY && !DEFAULT_KEY.includes('PASTE_YOUR_')){
+    return {url: DEFAULT_URL, key: DEFAULT_KEY};
+  }
+  return null;
+}
   function setConfig(url,key){localStorage.setItem(CONFIG_KEY,JSON.stringify({url:url.trim().replace(/\/$/,''),key:key.trim()}))}
   function makeClient(){const c=getConfig();if(!c?.url||!c?.key||!window.supabase)return null;try{return window.supabase.createClient(c.url,c.key)}catch{return null}}
   let sb=makeClient();
@@ -331,7 +341,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const wordToDb=w=>({user_id:currentUser.id,word:w.word,meaning:w.meaning||'',example:w.example||'',synonyms:w.synonyms||'',antonyms:w.antonyms||'',related:w.related||'',date:w.date||today()});
   async function loadCloud(){if(!sb||!currentUser)return false;const {data,error}=await sb.from('words').select('*').order('date',{ascending:false}).order('created_at',{ascending:false});if(error){console.error(error);showToast('Cloud load failed.');return false}words=(data||[]).map(dbToWord);saveLocal();return true}
   function updateAuthUI(){const configured=!!sb;$('connectBtn').textContent=configured?'☁ Connected':'☁ Connect';$('loginBtn').style.display=configured&&!currentUser?'inline-flex':'none';$('logoutBtn').style.display=configured&&currentUser?'inline-flex':'none';$('authStatus').textContent=currentUser?(currentUser.email?`Signed in · ${currentUser.email}`:'Signed in'):(configured?'Cloud ready · Sign in':'Local mode')}
-  function connectPrompt(){const old=getConfig();const url=prompt('Supabase Project URL:',old?.url||DEFAULT_URL);if(url===null)return;const key=prompt('Supabase Publishable key:',old?.key||'');if(key===null)return;if(!url.trim()||!key.trim())return alert('Please enter both values.');setConfig(url,key);sb=makeClient();updateAuthUI();showToast('Supabase connected on this device.');checkSession()}
+  function connectPrompt(){
+  if(DEFAULT_URL && DEFAULT_KEY && !DEFAULT_KEY.includes('PASTE_YOUR_')){
+    setConfig(DEFAULT_URL, DEFAULT_KEY);
+    sb=makeClient();
+    if(sb) return loginGoogle();
+  }
+  alert('Cloud connection is not configured.');
+}
   async function checkSession(){if(!sb)return;const {data}=await sb.auth.getSession();currentUser=data?.session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Cloud vocabulary loaded.')}}sb.auth.onAuthStateChange(async(_event,session)=>{currentUser=session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Signed in and synced.')}}})}
   async function loginGoogle(){if(!sb)return connectPrompt();const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)alert(error.message)}
   async function logout(){if(!sb)return;const {error}=await sb.auth.signOut();if(error)return alert(error.message);currentUser=null;loadLocal();render();updateAuthUI();showToast('Signed out. Local backup remains on this device.')}
