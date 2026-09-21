@@ -334,6 +334,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setConfig(url,key){localStorage.setItem(CONFIG_KEY,JSON.stringify({url:url.trim().replace(/\/$/,''),key:key.trim()}))}
   function makeClient(){const c=getConfig();if(!c?.url||!c?.key||!window.supabase)return null;try{return window.supabase.createClient(c.url,c.key)}catch{return null}}
   let sb=makeClient();
+  if (window.Capacitor?.isNativePlatform?.()) {
+  window.Capacitor.Plugins.App?.addListener('appUrlOpen', async ({ url }) => {
+    if (!url) return;
+
+    const hash = url.includes('#') ? url.split('#')[1] : '';
+    const params = new URLSearchParams(hash);
+
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    if (access_token && refresh_token && sb) {
+      await sb.auth.setSession({
+        access_token,
+        refresh_token
+      });
+    }
+  });
+}
   function loadLocal(){try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
   function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(words))}
   function showToast(text){const c=$('toastContainer');if(!c)return;const t=document.createElement('div');t.className='toast';t.textContent=text;c.appendChild(t);setTimeout(()=>t.remove(),2500)}
