@@ -350,7 +350,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   alert('Cloud connection is not configured.');
 }
   async function checkSession(){if(!sb)return;const {data}=await sb.auth.getSession();currentUser=data?.session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Cloud vocabulary loaded.')}}sb.auth.onAuthStateChange(async(_event,session)=>{currentUser=session?.user||null;updateAuthUI();if(currentUser){if(await loadCloud()){render();showToast('Signed in and synced.')}}})}
-  async function loginGoogle(){if(!sb)return connectPrompt();const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)alert(error.message)}
+ async function loginGoogle(){
+  if(!sb)return connectPrompt();
+
+  const isAndroidApp =
+    window.location.protocol === 'capacitor:' ||
+    window.location.protocol === 'ionic:' ||
+    window.Capacitor?.isNativePlatform?.();
+
+  const redirectTo = isAndroidApp
+    ? 'com.cursusupsc.vocabra://login-callback'
+    : window.location.origin + window.location.pathname;
+
+  const {data,error}=await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{
+      redirectTo
+    }
+  });
+
+  if(error)alert(error.message);
+}
   async function logout(){if(!sb)return;const {error}=await sb.auth.signOut();if(error)return alert(error.message);currentUser=null;loadLocal();render();updateAuthUI();showToast('Signed out. Local backup remains on this device.')}
   async function addCloud(w){if(!sb||!currentUser)return false;const {data,error}=await sb.from('words').insert(wordToDb(w)).select().single();if(error){console.error(error);alert('Could not save to cloud: '+error.message);return false}w.id=data.id;w.created=data.created_at;return true}
   async function updateCloud(w){if(!sb||!currentUser)return false;const {error}=await sb.from('words').update(wordToDb(w)).eq('id',w.id).eq('user_id',currentUser.id);if(error){console.error(error);alert('Could not update cloud: '+error.message);return false}return true}
