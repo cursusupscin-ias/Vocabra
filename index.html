@@ -343,16 +343,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
-
-    if (access_token && refresh_token && sb) {
-      await sb.auth.setSession({
-        access_token,
-        refresh_token
-      });
-    }
+if (access_token && refresh_token && sb) {
+  const { data, error } = await sb.auth.setSession({
+    access_token,
+    refresh_token
   });
-}
-  function loadLocal(){try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
+
+  if (error) {
+    console.error('OAuth session error:', error);
+    showToast('Google login failed.');
+    return;
+  }
+
+  currentUser = data.session?.user || null;
+  updateAuthUI();
+
+  if (currentUser) {
+    showToast(`Signed in · ${currentUser.email}`);
+
+    const loaded = await loadCloud();
+
+    if (loaded) {
+      render();
+      showToast('Google account synced successfully.');
+    }
+  }
+}  function loadLocal(){try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
   function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(words))}
   function showToast(text){const c=$('toastContainer');if(!c)return;const t=document.createElement('div');t.className='toast';t.textContent=text;c.appendChild(t);setTimeout(()=>t.remove(),2500)}
   const dbToWord=r=>({id:r.id,date:r.date||today(),word:r.word||'',meaning:r.meaning||'',example:r.example||'',synonyms:r.synonyms||'',antonyms:r.antonyms||'',related:r.related||'',created:r.created_at||new Date().toISOString()});
