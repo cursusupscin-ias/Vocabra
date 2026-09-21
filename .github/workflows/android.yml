@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - android-login-sync-fix
   workflow_dispatch:
 
 jobs:
