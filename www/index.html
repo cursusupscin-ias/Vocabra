@@ -334,41 +334,68 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setConfig(url,key){localStorage.setItem(CONFIG_KEY,JSON.stringify({url:url.trim().replace(/\/$/,''),key:key.trim()}))}
   function makeClient(){const c=getConfig();if(!c?.url||!c?.key||!window.supabase)return null;try{return window.supabase.createClient(c.url,c.key)}catch{return null}}
   let sb=makeClient();
-  if (window.Capacitor?.isNativePlatform?.()) {
-  window.Capacitor.Plugins.App?.addListener('appUrlOpen', async ({ url }) => {
-    if (!url) return;
+ if (window.Capacitor?.isNativePlatform?.()) {
+  const handleOAuthUrl = async (url) => {
+    if (!url || !sb) return;
 
+    const parts = url.split('?');
+    const query = parts[1]?.split('#')[0] || '';
     const hash = url.includes('#') ? url.split('#')[1] : '';
-    const params = new URLSearchParams(hash);
 
-    const access_token = params.get('access_token');
-    const refresh_token = params.get('refresh_token');
-if (access_token && refresh_token && sb) {
-  const { data, error } = await sb.auth.setSession({
-    access_token,
-    refresh_token
-  });
+    const params = new URLSearchParams(query);
+    const hashParams = new URLSearchParams(hash);
 
-  if (error) {
-    console.error('OAuth session error:', error);
-    showToast('Google login failed.');
-    return;
-  }
+    const access_token =
+      hashParams.get('access_token') ||
+      params.get('access_token');
 
-  currentUser = data.session?.user || null;
-  updateAuthUI();
+    const refresh_token =
+      hashParams.get('refresh_token') ||
+      params.get('refresh_token');
 
-  if (currentUser) {
-    showToast(`Signed in · ${currentUser.email}`);
+    if (!access_token || !refresh_token) return;
 
-    const loaded = await loadCloud();
+    const { data, error } = await sb.auth.setSession({
+      access_token,
+      refresh_token
+    });
 
-    if (loaded) {
-      render();
-      showToast('Google account synced successfully.');
+    if (error) {
+      console.error('OAuth session error:', error);
+      showToast('Google login failed.');
+      return;
     }
-  }
-}  function loadLocal(){try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
+
+    currentUser = data.session?.user || null;
+    updateAuthUI();
+
+    if (currentUser) {
+      showToast(`Signed in · ${currentUser.email}`);
+
+      const loaded = await loadCloud();
+
+      if (loaded) {
+        render();
+        showToast('Google account synced successfully.');
+      }
+    }
+  };
+
+  window.Capacitor.Plugins.App?.addListener(
+    'appUrlOpen',
+    ({ url }) => handleOAuthUrl(url)
+  );
+
+  window.Capacitor.Plugins.App?.getLaunchUrl?.()
+    .then(result => {
+      if (result?.url) {
+        handleOAuthUrl(result.url);
+      }
+    })
+    .catch(error => {
+      console.error('Launch URL error:', error);
+    });
+}{try{const d=localStorage.getItem(STORAGE_KEY);words=d?JSON.parse(d):[]}catch{words=[]}}
   function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(words))}
   function showToast(text){const c=$('toastContainer');if(!c)return;const t=document.createElement('div');t.className='toast';t.textContent=text;c.appendChild(t);setTimeout(()=>t.remove(),2500)}
   const dbToWord=r=>({id:r.id,date:r.date||today(),word:r.word||'',meaning:r.meaning||'',example:r.example||'',synonyms:r.synonyms||'',antonyms:r.antonyms||'',related:r.related||'',created:r.created_at||new Date().toISOString()});
